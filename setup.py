@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 from distutils.core import setup
+import shutil
+import zipfile
+import os, os.path
 
 setup(name='netblend',
       version='0.1',
@@ -10,3 +13,12 @@ setup(name='netblend',
       url='http://www.queatz.com/',
       py_modules=['netblend']
 )
+
+shutil.rmtree('io_netblend/netblend', True)
+shutil.copytree('netblend', 'io_netblend/netblend')
+z = zipfile.ZipFile('NetBlend_Addon.zip', mode = 'w')
+for d in os.walk('io_netblend/'):
+	z.write(d[0])
+	for f in d[2]:
+		z.write(os.path.join(d[0], f))
+z.close()
