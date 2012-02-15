@@ -11,7 +11,7 @@ setup(name='netblend',
       author='JacobF',
       author_email='queatz@gmail.com',
       url='http://www.queatz.com/',
-      py_modules=['netblend']
+      packages=['netblend']
 )
 
 shutil.rmtree('io_netblend/netblend', True)

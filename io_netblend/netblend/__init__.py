@@ -64,7 +64,6 @@ class NetBlend:
 		visited = []
 		
 		def visit(o):
-			print(o)
 			if o in visited:
 				raise StopIteration
 			yield o
