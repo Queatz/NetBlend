@@ -11,7 +11,7 @@ class Type:
 	
 	@staticmethod
 	def size():
-		"Number of bytes returned by bytes(self)."
+		"Number of bytes returned by pack()."
 		raise UserWarning('size must be implemented.')
 	
 	def unpack(self, b, nb):
@@ -28,6 +28,10 @@ class Type:
 
 class MutableType(Type):
 	_mutable = True
+
+	def size(self):
+		"Number of bytes returned by pack()."
+		return len(self.pack(lambda i: struct.pack('=I', 0)))
 
 # File conglomerate
 
@@ -143,10 +147,14 @@ class NetBlend:
 	
 	def write(self, types, stream):
 		"Write the netblend to a stream."
+		ol = sorted(list(self.walk()), key = lambda o: self._types_id(types, o))
+		
+		if len(ol) < 1:
+			return
+
 		i = 0
 		t = None
 		batch = None
-		ol = sorted(list(self.walk()), key = lambda o: self._types_id(types, o))
 		
 		_saveid = {}
 		
@@ -194,11 +202,6 @@ class NetBlend:
 		# Write the raw data
 		for o in ol:
 			stream.write(o.pack(toID))
-	
-	def __bytes__(self):
-		b = io.StringIO()
-		self.write(b)
-		return b
 
 # Convenience
 
