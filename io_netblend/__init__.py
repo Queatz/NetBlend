@@ -61,7 +61,7 @@ class NetBlendTypes:
             self.nb = netblend.standard.Scene()
             nb = self.nb
             
-            nb.name = bo.name
+            nb.name = netblend.standard.String(bo.name)
             a = self.skeleton.get(bo.camera)
             if a:
 	            nb.camera = a.nb
@@ -79,7 +79,7 @@ class NetBlendTypes:
             self.nb = netblend.standard.Object()
             nb = self.nb
             
-            nb.name = bo.name
+            nb.name = netblend.standard.String(bo.name)
             
             a = self.skeleton.get(bo.data)
             nb.data = (None if not a else a.nb)
@@ -109,7 +109,7 @@ class NetBlendTypes:
         def make(self, bo):
             self.nb = netblend.standard.Mesh()
             
-            self.nb.name = bo.name
+            self.nb.name = netblend.standard.String(bo.name)
             
             for v in bo.vertices:
                 self.nb.vertices.append(
@@ -185,7 +185,7 @@ bl_info = {
     'name': 'NetBlend',
     'author': 'Jacob Ferrero',
     'version': (0, 0, 1),
-    'blender': (2, 6, 1),
+    'blender': (2, 6, 3),
     'location': 'File > Export > NetBlend',
     'warning': 'Incomplete',
     'description': 'A compact and minimal blend format.',

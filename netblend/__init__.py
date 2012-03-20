@@ -196,7 +196,7 @@ class NetBlend:
 			if o is None:
 				return struct.pack('=I', 0)
 			if id(o) not in _saveid:
-				raise EnvironmentError('Lookup of object not found.')
+				raise EnvironmentError('Lookup of object not found.  The object requested either wasn\'t added or is missing in a walk().')
 			return struct.pack('=I', _saveid[id(o)])
 		
 		# Write the raw data
