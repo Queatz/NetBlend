@@ -9,11 +9,12 @@ NetBlends are compact conglomerates of inter-linkable objects interpreted using 
 
 NetBlends using the standard definition list are compact 3D scenes that follow the Blender way of doing things.  They are a perfect match for the simplest games that just want to load a set of 3D flora, to advanced games that want to stream high quality, complete scenes and objects over a network.
 
+* **Easy Access to Data**
+	* An extremely simple and easy to use programming interface.
+	* Opening and fetching any specific data can always be done in a single line of code.
 * **Completeness**
 	* No quirks or incompatibilities.  Zip.  None.  It simply works as expected.
-	* An extremely simple and easy to use programming interface throughout.
 	* What you export is what you get to play with in your game.  If you took the time to create it in your 3D editor, you probably want to be able to use it in your game.
-	* It is not only a conversion format; it is perfectly viable to use and edit all objects directly without ever taking them out of the NetBlend.
 * **Minimal & Compact**
 	* NetBlends consist of a sorted header and a data blob of all objects snugly packed together as bytes.
 	* No excess data is stored, only what, optionally you consider, is vital.

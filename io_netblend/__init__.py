@@ -266,6 +266,12 @@ class ExportNetBlend(bpy.types.Operator, ExportHelper):
             default = True,
         )
 
+    use_include_world = BoolProperty(
+            name = 'World',
+            description = 'Export the world.',
+            default = False,
+        )
+
     def execute(self, context):
         return write_netblend(context, self.filepath, self)
 
