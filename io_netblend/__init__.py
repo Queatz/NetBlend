@@ -226,8 +226,44 @@ class ExportNetBlend(bpy.types.Operator, ExportHelper):
 
     use_low_precision = BoolProperty(
             name = 'Low Precision',
-            description = 'Use low precision when available.',
+            description = 'Use low precision in exchange for a smaller file.',
             default = False,
+        )
+
+    use_include_names = BoolProperty(
+            name = 'Names',
+            description = 'Include object and data names in the export.',
+            default = True,
+        )
+
+    use_include_uv_textures = BoolProperty(
+            name = 'UV Textures',
+            description = 'Include uv textures in the export.',
+            default = True,
+        )
+
+    use_include_vertex_colors = BoolProperty(
+            name = 'Vertex Colors',
+            description = 'Include vertex colors in the export.',
+            default = True,
+        )
+
+    use_include_modifiers = BoolProperty(
+            name = 'Modifiers',
+            description = 'Include modifiers in the export.',
+            default = True,
+        )
+
+    use_include_constraints = BoolProperty(
+            name = 'Constraints',
+            description = 'Include constraints in the export.',
+            default = True,
+        )
+
+    use_include_materials = BoolProperty(
+            name = 'Materials',
+            description = 'Include materials in the export.',
+            default = True,
         )
 
     def execute(self, context):
