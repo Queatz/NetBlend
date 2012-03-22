@@ -81,8 +81,10 @@ class NetBlend:
 			for oo in visit(o):
 				yield oo
 	
-	def read(self, types, stream):
+	def read(self, stream, defs = None):
 		"Read a stream into the netblend."
+		if defs is None: defs = standard.defs
+
 		t = None
 		
 		typeheadersize = struct.calcsize('=HI')
@@ -104,7 +106,7 @@ class NetBlend:
 			if r[0] < 1:
 				break
 			
-			if self._types_ty(types, r[0])._mutable:
+			if self._types_ty(defs, r[0])._mutable:
 				vr = list()
 				for i in range(r[1]):
 					vr.append(struct.unpack('=I', stream.read(typevarysize))[0])
@@ -113,7 +115,7 @@ class NetBlend:
 				ranges.append(r)
 			
 			for i in range(r[1]):
-				o = self._types_ty(types, r[0])()
+				o = self._types_ty(defs, r[0])()
 				idc += 1
 				_loadid[idc] = o
 				
@@ -136,7 +138,7 @@ class NetBlend:
 		
 		for r in ranges:
 			if isinstance(r, tuple):
-				s = self._types_ty(types, r[0]).size()
+				s = self._types_ty(defs, r[0]).size()
 				for i in range(r[1]):
 					idc += 1
 					_loadid[idc].unpack(stream.read(s), fromID)
@@ -145,9 +147,11 @@ class NetBlend:
 					idc += 1
 					_loadid[idc].unpack(stream.read(s), fromID)
 	
-	def write(self, types, stream):
+	def write(self, stream, defs = None):
 		"Write the netblend to a stream."
-		ol = sorted(list(self.walk()), key = lambda o: self._types_id(types, o))
+		if defs is None: defs = standard.defs
+
+		ol = sorted(list(self.walk()), key = lambda o: self._types_id(defs, o))
 		
 		if len(ol) < 1:
 			return
@@ -171,7 +175,7 @@ class NetBlend:
 				write_batch()
 					
 				# Start new batch
-				batch = [self._types_id(types, o), 0, []]
+				batch = [self._types_id(defs, o), 0, []]
 				t = type(o)
 			
 			# If the struct is a varying sized type then we write each size.
@@ -205,9 +209,13 @@ class NetBlend:
 
 # Convenience
 
-def open(defs, filename):
+def open(filename, defs = None):
+	if defs is None: defs = standard.defs
+
 	b = NetBlend()
 	a = io.open(filename, 'rb')
-	b.read(defs, a)
+	b.read(a, defs)
 	a.close()
 	return b
+
+from . import standard

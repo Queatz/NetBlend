@@ -13,7 +13,7 @@ class Window:
 		scge.vsync()
 	
 	def setup(self):
-		self.nb = netblend.open(netblend.standard.defs, 'NetBlendAddon.netblend')
+		self.nb = netblend.open('NetBlendAddon.netblend')
 		
 		self.obj = None
 		for o in self.nb.walk():

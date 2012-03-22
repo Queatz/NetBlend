@@ -3,7 +3,6 @@
 # Tool to inspect the contents of a NetBlend.
 
 import netblend
-import netblend.standard
 
 import sys, os
 
@@ -13,7 +12,7 @@ if len(sys.argv) < 2 or not sys.argv[1].strip():
 if not os.path.isfile(sys.argv[1]):
 	exit('Wrong file')
 
-n = netblend.open(netblend.standard.defs, sys.argv[1])
+n = netblend.open(sys.argv[1])
 
 print('')
 
