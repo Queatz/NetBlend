@@ -72,11 +72,8 @@ To read from the netblend, you do something like:
 ```Python
 import netblend
 
-# Import the standard definition set
-import netblend.standard
-
-# Open a netblend using the standard definitions list
-nb = netblend.open(netblend.standard.defs, 'world.netblend')
+# Open a netblend
+nb = netblend.open('world.netblend')
 
 # Walk all the objects
 for obj in nb.walk():
