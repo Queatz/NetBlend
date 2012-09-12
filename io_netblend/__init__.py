@@ -1,156 +1,46 @@
 import sys, os.path
-sys.path.append(os.path.dirname(__file__))
+sys.path.append('/usr/lib/python3.2/site-packages/')
 
-import netblend
-import netblend.standard
+from . import netblend
+from .netblend import standard
 
 import bpy
-
-# NetBlend Types #
-
-class NetBlendTypes:
-    class Skeleton:
-        def __init__(self, props, match):
-            self.props = props
-            self.matches = match
-            self.blender_objects = {}
-            self.netblend = netblend.NetBlend()
-        
-        def get(self, bo):
-            if not bo:
-                return None
-            
-            bot = bo.bl_rna.identifier
-            
-            boi = bot + bo.name
-            
-            if boi in self.blender_objects:
-                return self.blender_objects[boi]
-            
-            if bot not in self.matches:
-                return None
-            
-            a = self.matches[bot]()
-            a.skeleton = self
-            self.blender_objects[boi] = a
-            a.make(bo)
-            
-            self.netblend.add(a.nb)
-            
-            if self.props.export in ('ALL', 'SCENE'):
-                a.walk(bo)
-            
-            return a
-        
-        add = get
-            
-    
-    class Converter:
-        #skeleton = None
-        def make(self, bo):
-            print('Exporting of ' + self.__class__.__name__ + ' is not implemented.')
-        
-        def salvage(self, nb):
-            print('Importing of ' + self.__class__.__name__ + ' is not implemented.')
-        
-        def walk(self, bo):
-            pass
-    
-    class Scene(Converter):
-        def make(self, bo):
-            self.nb = netblend.standard.Scene()
-            nb = self.nb
-            
-            nb.name = netblend.standard.String(bo.name)
-            a = self.skeleton.get(bo.camera)
-            if a:
-	            nb.camera = a.nb
-        
-        def walk(self, bo):
-            # Add objects from scene
-            for o in bo.objects:
-                a = self.skeleton.add(o)
-                
-                if a:
-                    self.nb.objects.append(a.nb)
-    
-    class Object(Converter):
-        def make(self, bo):
-            self.nb = netblend.standard.Object()
-            nb = self.nb
-            
-            nb.name = netblend.standard.String(bo.name)
-            
-            a = self.skeleton.get(bo.data)
-            nb.data = (None if not a else a.nb)
-            
-            if self.skeleton.props.export in ('ALL', 'SCENE') or self.skeleton.props.export == 'SELECTION' and bo.parent and bo.parent.select:
-                a = self.skeleton.get(bo.parent)
-                nb.parent = (None if not a else a.nb)
-            
-            nb.location.x = bo.location.x
-            nb.location.y = bo.location.y
-            nb.location.z = bo.location.z
-            
-            nb.rotation.x = bo.rotation_euler.x
-            nb.rotation.y = bo.rotation_euler.y
-            nb.rotation.z = bo.rotation_euler.z
-            
-            nb.scale.x = bo.scale.x
-            nb.scale.y = bo.scale.y
-            nb.scale.z = bo.scale.z
-        
-        def walk(self, bo):
-            # Add children of object
-            for o in bo.children:
-                self.skeleton.add(o)
-    
-    class Mesh(Converter):
-        def make(self, bo):
-            self.nb = netblend.standard.Mesh()
-            
-            self.nb.name = netblend.standard.String(bo.name)
-            
-            for v in bo.vertices:
-                self.nb.vertices.append(
-                    netblend.standard.Vec3(*v.co)
-                )
-            
-            for f in bo.faces:
-                self.nb.faces.append(
-                    [self.nb.vertices[x] for x in f.vertices]
-                )
-        
-    
-    
-    
-
-# NetBlend Write #
-
-netblend_btypes = {}
-for x in dir(NetBlendTypes):
-    a = getattr(NetBlendTypes, x)
-    try:
-        if issubclass(a, NetBlendTypes.Converter):
-            netblend_btypes[x] = a
-    except:
-        pass
 
 def write_netblend(context, filepath, props):
     print('Exporting NetBlend...')
     
-    ##if props.use_low_precision:
-    #    netblend.standard.options.vec3 = netblend.standard.Vec3_lowp
-    #else:
-    #    netblend.standard.options.vec3 = netblend.standard.Vec3
+    nb = netblend.NetBlend()
     
-    skele = NetBlendTypes.Skeleton(props, netblend_btypes)
+    b = bpy.types
+    n = standard
+    
+    agameofmatch = {
+        b.Scene: n.Scene,
+        b.World: n.World,
+        b.WorldMistSettings: n.WorldMist,
+        b.Object: n.Object,
+        b.Mesh: n.Mesh,
+    }
+    
+    accounted = {}
+    
+    def a(bl):
+        if bl in accounted:
+            return accounted[bl]
+        t = type(bl)
+        if t not in agameofmatch:
+            return None
+        accounted[bl] = agameofmatch[t]()
+        accounted[bl].from_bl(bl, a)
+        nb.append(accounted[bl])
+        return accounted[bl]
+    
     if props.export == 'ALL':
         if len(bpy.data.scenes) < 1:
             print('Cancelling: No scenes.')
             return {'CANCELLED'}
         for scene in bpy.data.scenes:
-            skele.add(scene)
+            a(scene)
     
     elif props.export == 'SCENE' or len(bpy.context.scene.objects) < 1:
         if not bpy.context.scene:
@@ -158,24 +48,22 @@ def write_netblend(context, filepath, props):
             return {'CANCELLED'}
         
         for o in bpy.context.scene.objects:
-            skele.add(o)
+            a(o)
     
     elif props.export == 'SELECTION':
         if len(bpy.context.selected_objects) < 1:
             print('Cancelling: No selection.')
             return {'CANCELLED'}
         for object in bpy.context.selected_objects:
-            skele.add(object)
+            a(object)
     
     elif props.export == 'DATA':
         if not bpy.context.object or not bpy.context.object.data:
             print('Cancelling: No data.')
             return {'CANCELLED'}
-        skele.add(bpy.context.object.data)
+        a(bpy.context.object.data)
     
-    f = open(filepath, 'wb+')
-    skele.netblend.write(netblend.standard.defs, f)
-    f.close()
+    nb.save(filepath)
 
     return {'FINISHED'}
 

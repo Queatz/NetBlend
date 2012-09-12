@@ -29,39 +29,12 @@ NetBlends using the standard definition list are compact 3D scenes that follow t
 	* Export only features you actually want to use (ex. don't export texcoords of meshes, don't export object names, don't export modifiers, etc.).
 	* Objects are chopped up into as many parts as reasonable and acceptable, each stored as individual objects, making all this fancy fancy possible.
 
-How It Works
-------------
-
-What makes a NetBlend?  NetBlends consist of a header and a blob of data that is interpreted using a given list of types.
-
-Let's look at the internal structure of a saved NetBlend:
-
-	TYPE COUNT
-	TYPE COUNT SIZE SIZE SIZE SIZE
-	TYPE COUNT SIZE
-	SENTINEL
-	DATABLOB
-
-To interpret this, a standard Python list is given along with the NetBlend.  For Example, in the list:
-
-```Python
-[Object, Camera, Mesh]
-```
-
-Object has a type ID of 1, Camera 2, and Mesh is 3.  Types can either be fixed size or adjustable.  In this example, let's assume Cameras are fixed, and Objects and Meshes are adjustable.
-
-In the above internals, `TYPE` maps to an index in the given list.  Assume the first `TYPE` listed is a Camera. Since Cameras are fixed size, only `COUNT` is written.  This is the number of objects of the `TYPE` in the NetBlend.
-
-Now assume the second `TYPE` is a Mesh.  Meshes can each be different in size, so in addition to writing the `COUNT`, a `SIZE` is written for every object.
-
-Once the `SENTINEL` is reached, all objects have been determined and they begin to be loaded from the `DATABLOB`.
-
 Installing and Using
 ----------
 
 Simply run
 
-	python3 setup.py install
+	python3 setup.py build
 
 as superuser to install netblend systemwide and create a .zip of io_netblend which can then be installed through User Preferences in Blender.
 
@@ -72,29 +45,31 @@ To read from the netblend, you do something like:
 ```Python
 import netblend
 
-# Open a netblend
-nb = netblend.open('world.netblend')
-
-# Walk all the objects
-for obj in nb.walk():
+# Find all the models
+for obj in netblend.open('world.netblend').find('model'):
 	print(obj)
 ```
 
-Creating Custom Types
----------------------
+You can do the same thing using custom classes:
 
-If the data size of the type can very per object, subclass MutableType; if the size is the same for every object, subclass Type.
+```Python
+import netblend
 
-Types have four methods: size, pack, unpack, and walk.  For fixed-size Type objects, size() is a static method.
+class Model:
+	# This allows it to save correctly
+	_nb_type = 'model'
 
-`size()` should return the calculated size of the result of pack().  This is so the header can be written before retrieving every object's packed bytes and holding them in memory throughout the save, or pack()ing twice, which is the default if you omit the size() in MutableTypes.
+# Find all the models
+for obj in netblend.open('world.netblend', {'model': Model}).find(Model):
+	print(obj)
+```
 
-`pack(i)` should return a Python bytes of all the data of the Type that should be saved.  It is supplied one argument, which is a function to convert any object's ID to bytes.
+Creating a netblend from scratch:
 
-`unpack(b, i)` has two arguments.  The first is the raw bytes (what pack() returned) and the second is a function to convert a section of bytes to a real object.
+```Python
+import netblend
 
-`walk()` is a method to iterate over all objects this object relies on.
-
-If you want to store more data in a standard type, follow the practice of creating a new Type with a member linking to the standard type (you're just storing the ID in your new Type, not the standard one's data.)
-
-See netblend/standard.py for examples.
+nb = NetBlend()
+nb.append(netblend.Node())
+nb.save('world.netblend')
+```
